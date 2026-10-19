@@ -34,6 +34,7 @@ Suggest a new one on the [project issues page](https://github.com/scorbo2/tts-se
 - [LuxTTS](impl/server_luxTTS.md)
 - [VoxCPM](impl/server_voxcpm.md)
 - [Breeze TTS 2](impl/server_breezeBlue.md)
+- [Pocket TTS](impl/server_pocketTTS.md)
 
 ## Quickstart
 

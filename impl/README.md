@@ -24,6 +24,7 @@ More information:
 - [LuxTTS](server_luxTTS.md)
 - [VoxCPM](server_voxcpm.md)
 - [Breeze TTS 2](server_breezeBlue.md)
+- [Pocket TTS](server_pocketTTS.md)
 
 
 ## Running
@@ -58,7 +59,23 @@ input text), so the server accepts any well-formed two-letter code for API
 consistency, does not forward it, and advertises `languages: null` in
 capabilities.
 
+**Pocket TTS** is a single-language-per-instance engine: the model is chosen
+at startup (`POCKET_TTS_MODEL`), so the server accepts any well-formed
+two-letter code, does not forward it, and advertises only the loaded model's
+code in `languages`.
+
 ## Engine-specific notes
+
+- **Pocket TTS** — CPU-only, 24 kHz. Reference audio is **optional**: the
+  voice is `audio_base64` (zero-shot clone; needs the gated weights, else a
+  `400`), else a preset `voice`, else the loaded language's default preset;
+  clip + preset together is a `422`. No `reference_text` field (the engine
+  has no use for a transcript). One instance serves one language
+  (`POCKET_TTS_MODEL`); `language` is accepted but not forwarded. `seed` is
+  meaningful and reproducible on CPU. Conditioned voice states are cached
+  per clip hash / preset (LRU of 8). Synthesis is serialized with a lock:
+  `generate_audio()` is not thread-safe and the sampler uses the global
+  torch RNG.
 
 - **Chatterbox** — no `reference_text` field: it conditions purely on the
   reference audio. Output is PerTh-watermarked by the library itself. Only the

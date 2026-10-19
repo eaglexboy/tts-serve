@@ -56,3 +56,5 @@ def setup() -> None:
     os.environ["BREEZEBLUE_DEVICE"] = "cuda"
     os.environ.pop("BREEZEBLUE_MODEL", None)     # default: BreezeBlue/breeze-tts-2
     os.environ.pop("BREEZEBLUE_FAST_ALL", None)  # default: 0 (eager)
+    os.environ.pop("POCKET_TTS_MODEL", None)     # default: english
+    os.environ.pop("POCKET_TTS_QUANTIZE", None)  # default: 0
