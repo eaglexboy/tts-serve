@@ -4,8 +4,12 @@ Quick stats:
 
 - **Server script**: [server_pocketTTS.py](server_pocketTTS.py)
 - **Sample rate**: 24 kHz
-- **Device**: CPU only (about 100M parameters; the engine does not officially
-  support GPUs, so there is no device env var)
+- **Device**: CPU (about 100M parameters; the engine does not officially
+  support GPUs, so there is no device env var and this server always loads
+  the model on CPU). The engine's README has a
+  [running on GPU](https://github.com/kyutai-labs/pocket-tts#running-on-gpu)
+  section; read it if you want to try that. Getting it working with this
+  server would mean changing `DEVICE` in `server_pocketTTS.py`.
 - **Notes**:
   - the lightweight engine in the set: roughly 2--6x faster than real time
     on a few CPU cores, so it suits low-latency use on a machine with no GPU.

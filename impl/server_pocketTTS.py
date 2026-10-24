@@ -116,7 +116,8 @@ LANGUAGE_NAME_TO_CODE = {
 
 MODEL_NAME = os.getenv("POCKET_TTS_MODEL", ENGINE_DEFAULT_MODEL)
 QUANTIZE = os.getenv("POCKET_TTS_QUANTIZE", "0") == "1"
-# Pocket TTS is CPU-only (GPU is not officially supported by the engine).
+# Pocket TTS is CPU-only here (GPU is not officially supported by the engine;
+# see "Running on GPU" in https://github.com/kyutai-labs/pocket-tts).
 DEVICE = "cpu"
 
 
