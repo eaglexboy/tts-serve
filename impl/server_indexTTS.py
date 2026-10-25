@@ -90,6 +90,8 @@ from indextts.infer_v2_5 import IndexTTS2
 from indextts.utils.model_download import snapshot_download
 from tts_engine_common import (
     DEFAULT_LANGUAGE,
+    CoreHealthResponse,
+    RELEASE_VERSION,
     CoreSynthesisResponse,
     build_capabilities,
     capabilities_endpoint,
@@ -362,10 +364,13 @@ class SynthesisResponse(CoreSynthesisResponse):
     fid: str = Field(..., description="Request ID (internal).")
 
 
-class HealthResponse(BaseModel):
-    """Health / readiness check."""
+class HealthResponse(CoreHealthResponse):
+    """The /health core from tts_engine_common, with this engine's serverType.
 
-    status: Literal["ok"] = "ok"
+    model/device pick up the import-time config; version carries the shared
+    RELEASE_VERSION constant — overriding it here is how a server drifts.
+    """
+
     serverType: Literal["index-tts"] = "index-tts"
     model: str = MODEL_DIR
     device: str = DEVICE_REPORT
@@ -441,7 +446,7 @@ app = FastAPI(
         "and get back cloned speech, with optional emotion control.  "
         "Machine-readable parameter metadata at GET /capabilities."
     ),
-    version="0.2.0",
+    version=RELEASE_VERSION,
     lifespan=lifespan,
 )
 

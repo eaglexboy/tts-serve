@@ -4,7 +4,13 @@ Deliberately pure fastapi + pydantic — no torch, no engine libraries — so it
 installs light, imports with no side effects, and tests on any dev box.
 """
 
-from .core import CORE_FIELDS, SCHEMA_VERSION, compute_rtf, decode_base64
+from .core import (
+    CORE_FIELDS,
+    RELEASE_VERSION,
+    SCHEMA_VERSION,
+    compute_rtf,
+    decode_base64,
+)
 from .derive import DerivationError, build_capabilities, spec_from_schema
 from .language import (
     DEFAULT_LANGUAGE,
@@ -14,6 +20,7 @@ from .language import (
 )
 from .models import (
     Capabilities,
+    CoreHealthResponse,
     CoreSynthesisResponse,
     ParamSpec,
     ReferenceAudioSpec,
@@ -31,8 +38,10 @@ __version__ = "0.1.0"
 __all__ = [
     "CORE_FIELDS",
     "DEFAULT_LANGUAGE",
+    "RELEASE_VERSION",
     "SCHEMA_VERSION",
     "Capabilities",
+    "CoreHealthResponse",
     "CoreSynthesisResponse",
     "DerivationError",
     "ParamSpec",

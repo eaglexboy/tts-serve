@@ -63,7 +63,7 @@ curl http://localhost:7500/health
 
 Every server has:
 - `GET /` - informational landing page
-- `GET /health` - server health
+- `GET /health` - server health (type, model, device, and the tts-serve release `version`)
 - `GET /docs` - Swagger docs
 - `POST /synthesize` - synthesize speech
 
@@ -118,6 +118,26 @@ python -m pytest tts-engine-common/tests/ impl/tests/ tools/tests/
 python impl/tests/update_snapshots.py
 ```
 
+### Versioning
+
+tts-serve keeps two independent version numbers — don't conflate them:
+
+- **Release version** (`RELEASE_VERSION` in `tts-engine-common/src/tts_engine_common/core.py`):
+  the number every server reports as `version` from `GET /health`. When you start a
+  release cycle, bump this constant **in the same commit** where you add the
+  README changelog placeholder below; the final value must match the release's
+  git tag (tags have no `v` prefix: `1.4`, not `v1.4`).
+- **Schema version** (`SCHEMA_VERSION`, same file): the client-contract version,
+  advertised as `schema_version` in `GET /capabilities`. Bump it **only** for
+  backwards-incompatible changes to the request/response contract — new engines
+  and new optional parameters are additive and must not bump it, because
+  version-gating clients (like `tools/speak.py`) refuse unknown schema versions
+  outright.
+
+If a release cycle breaks backwards compatibility, both numbers move: the
+release version per the usual cycle, and `SCHEMA_VERSION` once, with the
+capabilities snapshots regenerated.
+
 ## Testing
 
 In addition to a full suite of unit tests, manual testing is possible via
@@ -165,3 +185,5 @@ supplementing it with a newer/supplemental one. This avoids code/spec drift over
   - Update new-tts-engine skill a little (#42)
 - **2026-09-27** [v1.4]
   - Added support for BreezeBlue (#20)
+- **Work in progress; add release date when ready** (v1.5)
+  - TODO: release notes for v1.5 release go here

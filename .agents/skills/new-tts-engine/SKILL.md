@@ -50,7 +50,13 @@ Follow the section layout of `server_chatterbox.py` exactly:
    A core field the engine can't use is **omitted entirely** (Chatterbox has no
    `reference_text`) — never stubbed with a dead `None`.
 5. **`SynthesisResponse(CoreSynthesisResponse)`** — add `fid: str` plus any engine extras you actually report back.
-6. **`HealthResponse`** — `status`, `serverType`, `model` (label string), `device`.
+6. **`HealthResponse(CoreHealthResponse)`** — subclass the shared /health core
+   (`status`, `model`, `device`, and the `version` field carrying the shared
+   `RELEASE_VERSION` constant — all imported from `tts_engine_common`) and
+   override/add only `serverType` (a `Literal`) plus `model`/`device` bound to
+   the import-time config constants. Never hand-roll the health model from
+   `BaseModel` or re-declare `version`/`status` — `test_versioning_contract.py`
+   asserts every server subclasses the core.
 7. **`CAPABILITIES = build_capabilities(...)`** — stable engine slug (e.g. `"dots.tts"`),
    model label, device, the **real** sample rate, `watermarked`, `reference_audio` spec
    (required/formats/min_duration_s/note), `languages` (list or `None`), `overrides`
