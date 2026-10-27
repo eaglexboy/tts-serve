@@ -95,6 +95,8 @@ from tts_engine_common import (
     CoreSynthesisResponse,
     build_capabilities,
     capabilities_endpoint,
+    canonical_language_codes,
+    canonical_language_literal,
     compute_rtf,
     decode_base64,
     normalize_language,
@@ -174,8 +176,11 @@ DEVICE_REPORT = (
 # ---------------------------------------------------------------------------
 
 # Dynamic Literal over the engine's language codes so the request schema and
-# the /capabilities enum share one source.
-Language = Literal[tuple(LANGUAGE_CODES)]
+# the /capabilities enum share one source.  Built via the shared helper (the
+# five codes happen to already be sorted, but the helper pins the canonical
+# order structurally and rejects malformed tables at import time — see
+# tts_engine_common.canonical_language_literal).
+Language = canonical_language_literal(LANGUAGE_CODES)
 
 
 class SynthesisRequest(BaseModel):
@@ -401,7 +406,7 @@ CAPABILITIES = build_capabilities(
             "started with INDEXTTS_USE_QWEN_EMO=1) — at most one per request."
         ),
     },
-    languages=list(LANGUAGE_CODES),
+    languages=list(canonical_language_codes(LANGUAGE_CODES)),
     overrides={
         "emotion_alpha": {"step": 0.05},
         "duration_factor": {"step": 0.1},

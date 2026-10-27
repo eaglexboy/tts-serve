@@ -92,6 +92,8 @@ from tts_engine_common import (
     CoreSynthesisResponse,
     build_capabilities,
     capabilities_endpoint,
+    canonical_language_codes,
+    canonical_language_literal,
     compute_rtf,
     decode_base64,
     normalize_language,
@@ -164,8 +166,10 @@ _validate_config()
 
 # Dynamic Literal over the Base checkpoint's language codes (+ the engine's
 # 'auto' auto-detection sentinel) so the request schema and the
-# /capabilities enum share one source.
-Language = Literal[("auto", *LANGUAGE_CODES)]
+# /capabilities enum share one source.  Built via the shared helper to pin
+# canonical order; see tts_engine_common.canonical_language_literal for
+# why that pinning matters.
+Language = canonical_language_literal(LANGUAGE_CODES, auto=True)
 
 
 class SynthesisRequest(BaseModel):
@@ -341,7 +345,7 @@ CAPABILITIES = build_capabilities(
             "start of the output."
         ),
     },
-    languages=sorted(LANGUAGE_CODES),
+    languages=list(canonical_language_codes(LANGUAGE_CODES)),
     overrides={
         "temperature": {"step": 0.05},
         "top_p": {"step": 0.01, "advanced": True},

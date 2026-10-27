@@ -36,6 +36,8 @@ import server_dotsTTS
 import server_fasterQwen3TTS
 import server_indexTTS
 import server_luxTTS
+import server_ming3TTS
+import server_ming3TTS_moe
 import server_omnivoice
 import server_qwen3TTS
 import server_qwen3TTS_mlx
@@ -50,6 +52,8 @@ SERVER_MODULES = [
     server_dotsTTS,
     server_indexTTS,
     server_luxTTS,
+    server_ming3TTS,
+    server_ming3TTS_moe,
     server_voxcpm,
     server_breezeBlue,
 ]
@@ -62,6 +66,8 @@ SERVER_IDS = [
     "dots-tts",
     "index-tts",
     "lux-tts",
+    "ming3-tts",
+    "ming3-tts-moe",
     "voxcpm",
     "breeze-blue",
 ]

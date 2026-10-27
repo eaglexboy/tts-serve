@@ -14,6 +14,8 @@ from .core import (
 from .derive import DerivationError, build_capabilities, spec_from_schema
 from .language import (
     DEFAULT_LANGUAGE,
+    canonical_language_codes,
+    canonical_language_literal,
     is_language_code,
     normalize_language,
     validate_language_code,
@@ -50,6 +52,8 @@ __all__ = [
     "add_capabilities_route",
     "build_capabilities",
     "capabilities_endpoint",
+    "canonical_language_codes",
+    "canonical_language_literal",
     "cleanup_temp",
     "compute_rtf",
     "decode_base64",
