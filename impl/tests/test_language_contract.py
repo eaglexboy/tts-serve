@@ -22,6 +22,8 @@ import server_dotsTTS
 import server_fasterQwen3TTS
 import server_indexTTS
 import server_luxTTS
+import server_ming3TTS
+import server_ming3TTS_moe
 import server_omnivoice
 import server_qwen3TTS
 import server_qwen3TTS_mlx
@@ -38,6 +40,8 @@ SERVERS = [
     (server_dotsTTS, True),
     (server_indexTTS, False),
     (server_luxTTS, False),
+    (server_ming3TTS, False),
+    (server_ming3TTS_moe, False),
     (server_voxcpm, False),
     (server_breezeBlue, False),
 ]
@@ -50,6 +54,8 @@ SERVER_IDS = [
     "dots-tts",
     "index-tts",
     "lux-tts",
+    "ming3-tts",
+    "ming3-tts-moe",
     "voxcpm",
     "breeze-blue",
 ]
@@ -89,8 +95,10 @@ def _payload(module):
     # transcript is a hard requirement rather than an optional refinement.
     # BreezeBlue is the same: both of its supported modes (voice clone,
     # voice direction) condition on the clip and its exact transcript.
-    # (faster-qwen3-tts defaults to x-vector mode, which ignores it.)
-    if module in (server_qwen3TTS_mlx, server_breezeBlue):
+    # Ming-3.0-tts MoE: same story, its seed/multilingual cloning tasks are
+    # in-context.  (faster-qwen3-tts defaults to x-vector mode, which
+    # ignores it; ming3-tts 0.5b treats it as an optional refinement.)
+    if module in (server_qwen3TTS_mlx, server_breezeBlue, server_ming3TTS_moe):
         payload["reference_text"] = "A short, exact transcript of the reference clip."
     return payload
 

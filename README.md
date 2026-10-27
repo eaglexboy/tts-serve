@@ -34,6 +34,8 @@ Suggest a new one on the [project issues page](https://github.com/scorbo2/tts-se
 - [LuxTTS](impl/server_luxTTS.md)
 - [VoxCPM](impl/server_voxcpm.md)
 - [Breeze TTS 2](impl/server_breezeBlue.md)
+- [Ming 3 TTS (0.5b)](impl/server_ming3TTS.md)
+- [Ming 3 TTS (MoE)](impl/server_ming3TTS_moe.md)
 
 ## Quickstart
 
@@ -186,4 +188,7 @@ supplementing it with a newer/supplemental one. This avoids code/spec drift over
 - **2026-09-27** [v1.4]
   - Added support for BreezeBlue (#20)
 - **Work in progress; add release date when ready** (v1.5)
+  - Added support for Ming 3 TTS: 0.5b dense and 7.9B MoE ("tiny") voice
+    cloning, two servers (the engine's two checkpoints pin conflicting
+    dependencies)
   - TODO: release notes for v1.5 release go here
