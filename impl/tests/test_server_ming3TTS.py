@@ -360,6 +360,35 @@ def test_synthesize_reseeds_pipeline_with_request_seed(client, fake_model, monke
     assert response.json()["seed"] == 7
 
 
+def test_seed_everything_cudaUnavailable_skipsCudaSeeding(monkeypatch):
+    # GIVEN CUDA is unavailable: this server explicitly supports 'cpu' and
+    # 'mps' via MING3_TTS_DEVICE, and on a torch build without CUDA the
+    # torch.cuda accessors raise outright (the test stub's no-op
+    # manual_seed_all hides this, so the convention must be pinned here —
+    # an unguarded call would 500 every /synthesize, since seeding runs
+    # per request inside the synthesis lock):
+    def explode(seed: int) -> None:
+        raise AssertionError("Torch not compiled with CUDA enabled")
+
+    monkeypatch.setattr(srv.torch.cuda, "is_available", lambda: False)
+    monkeypatch.setattr(srv.torch.cuda, "manual_seed_all", explode)
+    # WHEN the pipeline is seeded,
+    # THEN the CUDA branch must be skipped and seeding must succeed:
+    srv.seed_everything(7)
+
+
+def test_seed_everything_cudaAvailable_seedsAllCudaDevices(monkeypatch):
+    # GIVEN CUDA is available,
+    seeded: list[int] = []
+    monkeypatch.setattr(srv.torch.cuda, "is_available", lambda: True)
+    monkeypatch.setattr(srv.torch.cuda, "manual_seed_all", seeded.append)
+    # WHEN the pipeline is seeded with 9,
+    # THEN every CUDA device must get that seed (the guard must not
+    # silently skip real GPU machines either):
+    srv.seed_everything(9)
+    assert seeded == [9]
+
+
 def test_synthesize_response_echoes_in_range_seed_when_omitted(client, fake_model):
     # (_valid_payload deliberately omits seed.)
     response = _post(client, _valid_payload())

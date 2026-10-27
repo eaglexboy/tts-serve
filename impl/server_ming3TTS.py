@@ -675,7 +675,13 @@ def seed_everything(seed: int) -> None:
     random.seed(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)
-    torch.cuda.manual_seed_all(seed)
+    # Guard the CUDA seeding like every other seed_everything in impl/:
+    # torch.cuda.* access raises on torch builds without CUDA compiled in,
+    # and this server explicitly supports 'cpu'/'mps' via MING3_TTS_DEVICE.
+    # (The engine's own infer.py skips the guard because it assumes CUDA —
+    # this server does not.)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(seed)
 
 
 def _check_reference_audio(raw_bytes: bytes) -> None:
