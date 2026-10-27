@@ -78,6 +78,7 @@ from tts_engine_common import (
     CoreSynthesisResponse,
     build_capabilities,
     capabilities_endpoint,
+    canonical_language_codes,
     canonical_language_literal,
     compute_rtf,
     decode_base64,
@@ -269,7 +270,7 @@ CAPABILITIES = build_capabilities(
             "high-quality cloning."
         ),
     },
-    languages=sorted(LANGUAGE_CODES),
+    languages=list(canonical_language_codes(LANGUAGE_CODES)),
 )
 
 # ---------------------------------------------------------------------------

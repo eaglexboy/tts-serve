@@ -117,6 +117,7 @@ from tts_engine_common import (
     CoreSynthesisResponse,
     build_capabilities,
     capabilities_endpoint,
+    canonical_language_codes,
     canonical_language_literal,
     cleanup_temp,
     compute_rtf,
@@ -317,7 +318,7 @@ CAPABILITIES = build_capabilities(
             "clips are truncated."
         ),
     },
-    languages=list(SUPPORTED_LANGUAGES),
+    languages=list(canonical_language_codes(SUPPORTED_LANGUAGES)),
     overrides={
         "exaggeration": {"step": 0.05},
         "cfg_weight": {"step": 0.05},

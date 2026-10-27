@@ -129,6 +129,7 @@ from tts_engine_common import (
     CoreSynthesisResponse,
     build_capabilities,
     capabilities_endpoint,
+    canonical_language_codes,
     canonical_language_literal,
     cleanup_temp,
     compute_rtf,
@@ -394,7 +395,7 @@ CAPABILITIES = build_capabilities(
             "re-encodes the reference per request (no prompt cache)."
         ),
     },
-    languages=sorted(LANGUAGE_CODES),
+    languages=list(canonical_language_codes(LANGUAGE_CODES)),
     overrides={
         "cfg_scale": {"step": 0.1, "advanced": True},
         "flow_steps": {"step": 1, "advanced": True},

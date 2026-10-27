@@ -9,6 +9,7 @@ from pydantic import BaseModel, ValidationError
 
 from tts_engine_common.language import (
     DEFAULT_LANGUAGE,
+    canonical_language_codes,
     canonical_language_literal,
     is_language_code,
     normalize_language,
@@ -138,7 +139,64 @@ class TestValidateLanguageCode:
             validate_language_code("English", allow_auto=True)
 
 
+class TestCanonicalLanguageCodes:
+    def test_canonical_language_codes_unsortedCodes_returnsSortedTuple(self) -> None:
+        # GIVEN codes in declaration (unsorted) order,
+        # WHEN the canonical tuple is built,
+        # THEN it holds the sorted codes — the shared ordering oracle for
+        # both the Literal and the capabilities 'languages' list:
+        assert canonical_language_codes(("zh", "en", "de", "es", "fr", "ja", "ko")) == (
+            "de", "en", "es", "fr", "ja", "ko", "zh",
+        )
+
+    def test_canonical_language_codes_autoFlag_autoLeadsThenSortedCodes(self) -> None:
+        # GIVEN an engine with the auto-detection sentinel,
+        # THEN 'auto' leads and the codes follow sorted:
+        assert canonical_language_codes(("zh", "en", "fr"), auto=True) == ("auto", "en", "fr", "zh")
+
+    def test_canonical_language_codes_duplicateCodes_areDeduplicated(self) -> None:
+        # GIVEN a sloppy engine table listing 'en' twice:
+        assert canonical_language_codes(("en", "fr", "en")) == ("en", "fr")
+
+    def test_canonical_language_codes_emptyCodes_raisesValueError(self) -> None:
+        # GIVEN no codes at all (an engine with no fixed list should use the
+        # free-form validator, not this helper):
+        with pytest.raises(ValueError, match="at least one code"):
+            canonical_language_codes(())
+
+    @pytest.mark.parametrize("bad", ["EN", "eng", "x?", "English"])
+    def test_canonical_language_codes_malformedCode_raisesValueError(self, bad: str) -> None:
+        # GIVEN a code that violates the two-letter lowercase contract:
+        with pytest.raises(ValueError, match="two-letter lowercase"):
+            canonical_language_codes(("en", bad))
+
+    def test_canonical_language_codes_autoInCodes_raisesValueError(self) -> None:
+        # GIVEN 'auto' smuggled into the code list instead of passed via
+        # auto= (it is not a two-letter code, and hiding it in the list
+        # would advertise it on engines without auto-detection):
+        with pytest.raises(ValueError, match="auto="):
+            canonical_language_codes(("en", "auto"))
+
+    @pytest.mark.parametrize("auto", [False, True], ids=["noAuto", "withAuto"])
+    def test_canonical_language_literal_membersAreExactlyTheCanonicalCodes(self, auto: bool) -> None:
+        # GIVEN the same code list handed to both helpers,
+        # THEN the Literal's members are exactly the canonical tuple: the
+        # request schema and the capabilities 'languages' list can never
+        # disagree, because they are one expression under the hood:
+        codes = ("zh", "en", "de", "es", "fr", "ja", "ko")
+        assert get_args(canonical_language_literal(codes, auto=auto)) == canonical_language_codes(
+            codes, auto=auto
+        )
+
+
 class TestCanonicalLanguageLiteral:
+    # Error handling (empty/malformed/auto-smuggling/dedup) is pinned once
+    # at the source in TestCanonicalLanguageCodes — this helper is a
+    # one-liner over it, and the consistency test there proves the
+    # coupling.  Only what *this* wrapper uniquely provides is covered
+    # here: member order in the built type, the cross-model enum
+    # collision, and annotation usability.
+
     def test_canonical_language_literal_unsortedCodes_argsAreSorted(self) -> None:
         # GIVEN codes handed in declaration (unsorted) order,
         # WHEN the Literal is built,
@@ -146,39 +204,6 @@ class TestCanonicalLanguageLiteral:
         # allowed to reach the /capabilities enum:
         literal = canonical_language_literal(("zh", "en", "de", "es", "fr", "ja", "ko"))
         assert get_args(literal) == ("de", "en", "es", "fr", "ja", "ko", "zh")
-
-    def test_canonical_language_literal_autoFlag_autoLeadsThenSortedCodes(self) -> None:
-        # GIVEN an engine with the auto-detection sentinel,
-        # THEN 'auto' leads (readability) and the codes follow sorted:
-        literal = canonical_language_literal(("zh", "en", "fr"), auto=True)
-        assert get_args(literal) == ("auto", "en", "fr", "zh")
-
-    def test_canonical_language_literal_duplicateCodes_areDeduplicated(self) -> None:
-        # GIVEN a sloppy engine table listing 'en' twice,
-        # THEN the Literal holds each code once:
-        literal = canonical_language_literal(("en", "fr", "en"))
-        assert get_args(literal) == ("en", "fr")
-
-    def test_canonical_language_literal_emptyCodes_raisesValueError(self) -> None:
-        # GIVEN no codes at all (a Literal needs at least one member; an
-        # engine with no fixed list should use the free-form validator, not
-        # this helper),
-        # THEN it fails loudly at import time:
-        with pytest.raises(ValueError, match="at least one code"):
-            canonical_language_literal(())
-
-    @pytest.mark.parametrize("bad", ["EN", "eng", "x?", "English"])
-    def test_canonical_language_literal_malformedCode_raisesValueError(self, bad: str) -> None:
-        # GIVEN a code that violates the two-letter lowercase contract:
-        with pytest.raises(ValueError, match="two-letter lowercase"):
-            canonical_language_literal(("en", bad))
-
-    def test_canonical_language_literal_autoInCodes_raisesValueError(self) -> None:
-        # GIVEN 'auto' smuggled into the code list instead of passed via
-        # auto= (the sentinel is not a two-letter code, and hiding it in
-        # the list would advertise it on engines without auto-detection):
-        with pytest.raises(ValueError, match="auto="):
-            canonical_language_literal(("en", "auto"))
 
     def test_canonical_language_literal_sameSetDifferentOrders_advertiseIdenticalEnums(self) -> None:
         # GIVEN two servers declaring the same code set in different

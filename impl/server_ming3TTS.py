@@ -131,6 +131,7 @@ from tts_engine_common import (
     CoreSynthesisResponse,
     build_capabilities,
     capabilities_endpoint,
+    canonical_language_codes,
     canonical_language_literal,
     compute_rtf,
     decode_base64,
@@ -387,7 +388,7 @@ CAPABILITIES = build_capabilities(
             "same clip are cheaper."
         ),
     },
-    languages=sorted(LANGUAGE_CODES),
+    languages=list(canonical_language_codes(LANGUAGE_CODES)),
     overrides={
         "cfg": {"step": 0.1, "advanced": True},
         "sigma": {"step": 0.05, "advanced": True},

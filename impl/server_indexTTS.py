@@ -95,6 +95,7 @@ from tts_engine_common import (
     CoreSynthesisResponse,
     build_capabilities,
     capabilities_endpoint,
+    canonical_language_codes,
     canonical_language_literal,
     compute_rtf,
     decode_base64,
@@ -405,7 +406,7 @@ CAPABILITIES = build_capabilities(
             "started with INDEXTTS_USE_QWEN_EMO=1) — at most one per request."
         ),
     },
-    languages=list(LANGUAGE_CODES),
+    languages=list(canonical_language_codes(LANGUAGE_CODES)),
     overrides={
         "emotion_alpha": {"step": 0.05},
         "duration_factor": {"step": 0.1},

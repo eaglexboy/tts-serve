@@ -92,6 +92,7 @@ from tts_engine_common import (
     CoreSynthesisResponse,
     build_capabilities,
     capabilities_endpoint,
+    canonical_language_codes,
     canonical_language_literal,
     compute_rtf,
     decode_base64,
@@ -344,7 +345,7 @@ CAPABILITIES = build_capabilities(
             "start of the output."
         ),
     },
-    languages=sorted(LANGUAGE_CODES),
+    languages=list(canonical_language_codes(LANGUAGE_CODES)),
     overrides={
         "temperature": {"step": 0.05},
         "top_p": {"step": 0.01, "advanced": True},

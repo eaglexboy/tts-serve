@@ -62,6 +62,7 @@ from tts_engine_common import (
     CoreSynthesisResponse,
     build_capabilities,
     capabilities_endpoint,
+    canonical_language_codes,
     canonical_language_literal,
     compute_rtf,
     decode_base64,
@@ -268,7 +269,7 @@ CAPABILITIES = build_capabilities(
             "omitted, cloning falls back to speaker-embedding-only mode."
         ),
     },
-    languages=sorted(LANGUAGE_CODES),
+    languages=list(canonical_language_codes(LANGUAGE_CODES)),
     overrides={
         "x_vector_only_mode": {"advanced": True},
         "temperature": {"step": 0.05},
