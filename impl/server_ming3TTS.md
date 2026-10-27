@@ -50,7 +50,7 @@ git clone https://github.com/inclusionAI/Ming-3.0-tts.git
 cd Ming-3.0-tts
 conda create -n ming-tts python=3.11 -y && conda activate ming-tts
 pip install -r requirements.txt
-pip install fastapi uvicorn loguru soundfile
+pip install fastapi uvicorn loguru soundfile pynini
 pip install ../path/to/tts-serve/tts-engine-common   # or: pip install -e ...
 ```
 
