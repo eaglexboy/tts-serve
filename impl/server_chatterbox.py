@@ -117,6 +117,7 @@ from tts_engine_common import (
     CoreSynthesisResponse,
     build_capabilities,
     capabilities_endpoint,
+    canonical_language_literal,
     cleanup_temp,
     compute_rtf,
     decode_base64,
@@ -167,9 +168,12 @@ MAX_AUDIO_B64_LEN = 10_000_000
 # ---------------------------------------------------------------------------
 
 # Dynamic Literal built from the engine's own language table, so the request
-# schema, the /capabilities enum, and engine-side validation share one source.
-# (dict preserves insertion order, so the enum is stable across processes.)
-Language = Literal[tuple(SUPPORTED_LANGUAGES)]
+# schema, the /capabilities enum, and engine-side validation share one
+# source.  Built via the shared helper to pin canonical sorted order rather
+# than relying on the dict's insertion order (see
+# tts_engine_common.canonical_language_literal for the pydantic Literal
+# collision that makes relying on declaration order unsafe).
+Language = canonical_language_literal(SUPPORTED_LANGUAGES)
 
 
 class SynthesisRequest(BaseModel):

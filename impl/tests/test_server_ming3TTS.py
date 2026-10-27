@@ -51,6 +51,10 @@ def test_capabilities_language_enum_is_codes_without_auto(client):
     assert "auto" not in enum
     assert "en" in enum
     assert "zh" in enum
+    # Exact set *and* order: the Literal is pinned to sorted codes because
+    # pydantic's Literal cache conflates same-arg-set Literals across the
+    # two Ming servers (import-order-dependent enum order otherwise).
+    assert enum == sorted(srv.LANGUAGE_CODES)
     assert doc["languages"] == sorted(srv.LANGUAGE_CODES)
 
 

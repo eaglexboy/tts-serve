@@ -78,6 +78,7 @@ from tts_engine_common import (
     CoreSynthesisResponse,
     build_capabilities,
     capabilities_endpoint,
+    canonical_language_literal,
     compute_rtf,
     decode_base64,
     normalize_language,
@@ -144,8 +145,10 @@ LANGUAGE_CODES = tuple(LANGUAGE_CODE_TO_NAME)
 
 # Dynamic Literal over the Base checkpoint's language codes (+ the engine's
 # 'auto' auto-detection sentinel, mlx-audio's own default for `lang_code`) so
-# the request schema and the /capabilities enum share one source.
-Language = Literal[("auto", *LANGUAGE_CODES)]
+# the request schema and the /capabilities enum share one source.  Built via
+# the shared helper to pin canonical order; see
+# tts_engine_common.canonical_language_literal for why that pinning matters.
+Language = canonical_language_literal(LANGUAGE_CODES, auto=True)
 
 
 class SynthesisRequest(BaseModel):

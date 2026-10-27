@@ -129,6 +129,7 @@ from tts_engine_common import (
     CoreSynthesisResponse,
     build_capabilities,
     capabilities_endpoint,
+    canonical_language_literal,
     cleanup_temp,
     compute_rtf,
     decode_base64,
@@ -207,8 +208,11 @@ def _task_for_language(code: str) -> str:
 # ---------------------------------------------------------------------------
 
 # Dynamic Literal over the codes the two cloning tasks cover, so the
-# request schema and the /capabilities enum share one source.
-Language = Literal[tuple(LANGUAGE_CODES)]
+# request schema and the /capabilities enum share one source.  Built via the
+# shared helper to pin canonical sorted order (LANGUAGE_CODES keeps the
+# task-grouped order for _task_for_language; the collision this dodges is
+# documented in tts_engine_common.canonical_language_literal).
+Language = canonical_language_literal(LANGUAGE_CODES)
 
 
 class SynthesisRequest(BaseModel):

@@ -131,6 +131,7 @@ from tts_engine_common import (
     CoreSynthesisResponse,
     build_capabilities,
     capabilities_endpoint,
+    canonical_language_literal,
     compute_rtf,
     decode_base64,
     normalize_language,
@@ -207,8 +208,12 @@ _validate_config()
 
 # Dynamic Literal over the checkpoint's language codes so the request
 # schema and the /capabilities enum share one source (no 'auto': the
-# engine's TTS task has no auto-detection sentinel to map onto).
-Language = Literal[tuple(LANGUAGE_CODES)]
+# engine's TTS task has no auto-detection sentinel to map onto).  Built via
+# the shared helper so the enum is pinned to canonical sorted order — see
+# tts_engine_common.canonical_language_literal for the pydantic Literal
+# collision that hand-rolled Literals invite (the one that once leaked the
+# 0.5b code order into the MoE server's capabilities snapshot).
+Language = canonical_language_literal(LANGUAGE_CODES)
 
 
 class SynthesisRequest(BaseModel):

@@ -95,13 +95,13 @@
       "max": null,
       "step": null,
       "enum": [
-        "zh",
+        "de",
         "en",
+        "es",
+        "fr",
         "ja",
         "ko",
-        "de",
-        "fr",
-        "es"
+        "zh"
       ],
       "min_length": null,
       "max_length": null,

@@ -2,10 +2,14 @@
 
 from __future__ import annotations
 
+from typing import get_args
+
 import pytest
+from pydantic import BaseModel, ValidationError
 
 from tts_engine_common.language import (
     DEFAULT_LANGUAGE,
+    canonical_language_literal,
     is_language_code,
     normalize_language,
     validate_language_code,
@@ -132,3 +136,85 @@ class TestValidateLanguageCode:
         # THEN the message names 'auto' so clients know it is allowed:
         with pytest.raises(ValueError, match="or 'auto'"):
             validate_language_code("English", allow_auto=True)
+
+
+class TestCanonicalLanguageLiteral:
+    def test_canonical_language_literal_unsortedCodes_argsAreSorted(self) -> None:
+        # GIVEN codes handed in declaration (unsorted) order,
+        # WHEN the Literal is built,
+        # THEN its members are the sorted codes — declaration order is not
+        # allowed to reach the /capabilities enum:
+        literal = canonical_language_literal(("zh", "en", "de", "es", "fr", "ja", "ko"))
+        assert get_args(literal) == ("de", "en", "es", "fr", "ja", "ko", "zh")
+
+    def test_canonical_language_literal_autoFlag_autoLeadsThenSortedCodes(self) -> None:
+        # GIVEN an engine with the auto-detection sentinel,
+        # THEN 'auto' leads (readability) and the codes follow sorted:
+        literal = canonical_language_literal(("zh", "en", "fr"), auto=True)
+        assert get_args(literal) == ("auto", "en", "fr", "zh")
+
+    def test_canonical_language_literal_duplicateCodes_areDeduplicated(self) -> None:
+        # GIVEN a sloppy engine table listing 'en' twice,
+        # THEN the Literal holds each code once:
+        literal = canonical_language_literal(("en", "fr", "en"))
+        assert get_args(literal) == ("en", "fr")
+
+    def test_canonical_language_literal_emptyCodes_raisesValueError(self) -> None:
+        # GIVEN no codes at all (a Literal needs at least one member; an
+        # engine with no fixed list should use the free-form validator, not
+        # this helper),
+        # THEN it fails loudly at import time:
+        with pytest.raises(ValueError, match="at least one code"):
+            canonical_language_literal(())
+
+    @pytest.mark.parametrize("bad", ["EN", "eng", "x?", "English"])
+    def test_canonical_language_literal_malformedCode_raisesValueError(self, bad: str) -> None:
+        # GIVEN a code that violates the two-letter lowercase contract:
+        with pytest.raises(ValueError, match="two-letter lowercase"):
+            canonical_language_literal(("en", bad))
+
+    def test_canonical_language_literal_autoInCodes_raisesValueError(self) -> None:
+        # GIVEN 'auto' smuggled into the code list instead of passed via
+        # auto= (the sentinel is not a two-letter code, and hiding it in
+        # the list would advertise it on engines without auto-detection):
+        with pytest.raises(ValueError, match="auto="):
+            canonical_language_literal(("en", "auto"))
+
+    def test_canonical_language_literal_sameSetDifferentOrders_advertiseIdenticalEnums(self) -> None:
+        # GIVEN two servers declaring the same code set in different
+        # orders (exactly the Ming 0.5b-vs-MoE bug): CPython hashes
+        # Literal by the frozenset of its args, so pydantic's core-schema
+        # cache hands whichever model built its schema first to *both* —
+        # WHEN both models are compiled in one process and emit JSON
+        # schemas,
+        # THEN both advertise the identical sorted enum: the helper makes
+        # the collision unobservable.
+        literalA = canonical_language_literal(("zh", "en", "ja", "ko", "de", "fr", "es"))
+        literalB = canonical_language_literal(("zh", "en", "de", "es", "fr", "ja", "ko"))
+
+        class ServerA(BaseModel):
+            language: literalA | None = "en"
+
+        class ServerB(BaseModel):
+            language: literalB | None = "en"
+
+        def enum_of(model: type[BaseModel]) -> list[str]:
+            branch = model.model_json_schema()["properties"]["language"]["anyOf"][0]
+            return branch["enum"]
+
+        assert enum_of(ServerA) == enum_of(ServerB)
+        assert enum_of(ServerA) == ["de", "en", "es", "fr", "ja", "ko", "zh"]
+
+    def test_canonical_language_literal_usableAsFieldAnnotation_validatesMembership(self) -> None:
+        # GIVEN a model field typed with a helper-built Literal (with auto),
+        # WHEN a listed code or the sentinel is submitted, validation
+        # passes; an unlisted code fails:
+        literal = canonical_language_literal(("en", "fr"), auto=True)
+
+        class Request(BaseModel):
+            language: literal | None = "en"
+
+        assert Request(language="fr").language == "fr"
+        assert Request(language="auto").language == "auto"
+        with pytest.raises(ValidationError):
+            Request(language="de")

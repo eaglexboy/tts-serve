@@ -10,6 +10,8 @@ re-interprets) it differently.
 from __future__ import annotations
 
 import re
+from collections.abc import Iterable
+from typing import Any, Literal
 
 # Convention (docs/02): a null or empty ``language`` means English.
 DEFAULT_LANGUAGE = "en"
@@ -66,3 +68,43 @@ def validate_language_code(value: str, *, allow_auto: bool = False) -> str:
         f"language must be a two-letter lowercase code like 'en' or 'fr'"
         f"{extra}, got {value!r}"
     )
+
+
+def canonical_language_literal(codes: Iterable[str], *, auto: bool = False) -> Any:
+    """Build the ``Literal`` type for a fixed-enum ``language`` request field.
+
+    Every server with an enum-based language field must build its ``Language``
+    type through this helper rather than a hand-rolled ``Literal[tuple(...)]``.
+    Two independent reasons, one nasty:
+
+    1. Pydantic caches core schemas keyed on the ``Literal`` *object*, and
+       CPython compares/hashes ``Literal[...]`` by the **frozenset** of its
+       args — same code set, any declaration order, hash-equal.  Whichever
+       model builds its JSON schema first in a process therefore supplies the
+       enum for *every* model with that code set, silently reordering the
+       ``/capabilities`` document (this is how the MoE Ming snapshot shipped
+       with the 0.5b server's code order).
+    2. Canonical order — ``'auto'`` first (only when the engine offers the
+       auto-detection sentinel) then the sorted codes — is exactly what
+       ``impl/tests/test_language_contract.py``
+       ``test_capabilities_languageEnum_advertisedInCanonicalSortedOrder``
+       asserts for every server.  Pinning all servers to it means a cache
+       collision can no longer change any advertised enum, and the contract
+       test (which derives the expectation from the document itself, not a
+       snapshot) catches any server that drifts back to declaration order.
+
+    Raises ValueError at import time for an empty code list or anything that
+    is not a two-letter lowercase code — a typo'd engine table should fail
+    at startup, not when a client reads /capabilities.  Pass the auto-
+    detection sentinel via ``auto=`` rather than hiding it in ``codes``.
+    """
+    ordered = sorted(set(codes))
+    if not ordered:
+        raise ValueError("canonical_language_literal needs at least one code")
+    invalid = [code for code in ordered if not is_language_code(code)]
+    if invalid:
+        raise ValueError(
+            f"language codes must be two-letter lowercase like 'en'/'fr' "
+            f"(pass 'auto' via auto=, never in codes); got {invalid}"
+        )
+    return Literal[tuple(("auto", *ordered) if auto else ordered)]
