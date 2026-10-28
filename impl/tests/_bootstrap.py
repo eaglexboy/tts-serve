@@ -58,3 +58,8 @@ def setup() -> None:
     os.environ.pop("BREEZEBLUE_FAST_ALL", None)  # default: 0 (eager)
     os.environ.pop("POCKET_TTS_MODEL", None)     # default: english
     os.environ.pop("POCKET_TTS_QUANTIZE", None)  # default: 0
+    os.environ["MING3_TTS_DEVICE"] = "cuda"      # mirror server's documented default
+    os.environ.pop("MING3_TTS_MODEL", None)      # default: inclusionAI/Ming-3.0-tts-0.5b
+    os.environ.pop("MING3_TTS_TEXT_NORMALIZATION", None)  # default: 1 (documented in the server docstring)
+    os.environ["MING3_TTS_MOE_DEVICE"] = "cuda"  # mirror server's documented default
+    os.environ.pop("MING3_TTS_MOE_MODEL", None)  # default: inclusionAI/Ming-3.0-tts-tiny
