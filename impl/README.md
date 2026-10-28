@@ -24,9 +24,9 @@ More information:
 - [LuxTTS](server_luxTTS.md)
 - [VoxCPM](server_voxcpm.md)
 - [Breeze TTS 2](server_breezeBlue.md)
-- [Pocket TTS](server_pocketTTS.md)
 - [Ming 3 TTS (0.5b)](server_ming3TTS.md)
 - [Ming 3 TTS (MoE)](server_ming3TTS_moe.md)
+- [Pocket TTS](server_pocketTTS.md)
 
 
 ## Running
